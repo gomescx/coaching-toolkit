@@ -75,9 +75,9 @@
   tbody td { padding: 0.55rem 0.75rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
   tbody td.center { text-align: center; }
   .score-display { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; font-weight: 500; font-size: 0.82rem; border: 1.5px solid; }
-  td input[type="text"].vision-input { width: 100%; border: 1px solid transparent; background: transparent; font-family: 'DM Sans', sans-serif; font-size: 0.8rem; font-style: italic; color: var(--ink-soft); padding: 0.22rem 0.35rem; border-radius: var(--radius); outline: none; transition: all 0.16s; }
-  td input[type="text"].vision-input:hover, td input[type="text"].vision-input:focus { border-color: var(--border); background: var(--paper); color: var(--ink); font-style: normal; }
-  td input[type="text"].vision-input::placeholder { color: var(--ink-muted); }
+  td textarea.vision-input { width: 100%; border: 1px solid transparent; background: transparent; font-family: 'DM Sans', sans-serif; font-size: 0.8rem; font-style: italic; color: var(--ink-soft); padding: 0.22rem 0.35rem; border-radius: var(--radius); outline: none; transition: border-color 0.16s, background 0.16s; resize: none; overflow: hidden; min-height: 2.4rem; line-height: 1.5; display: block; box-sizing: border-box; }
+  td textarea.vision-input:hover, td textarea.vision-input:focus { border-color: var(--border); background: var(--paper); color: var(--ink); font-style: normal; }
+  td textarea.vision-input::placeholder { color: var(--ink-muted); }
   .future-cell { text-align: center; color: var(--ink-muted); font-size: 0.75rem; }
 
   .questions-list { display: flex; flex-direction: column; gap: 0.75rem; }
@@ -135,7 +135,7 @@
     .btn-header-cta, .cta-band { display: none !important; }
     .question-notes { display: block !important; }
     .question-notes textarea { border: 1px solid #ccc !important; background: #fafafa !important; min-height: 45px; }
-    td input[type="text"].vision-input { border: none !important; background: transparent !important; }
+    td textarea.vision-input { border: none !important; background: transparent !important; resize: none; }
     table { font-size: 9pt; }
     col.col-domain { width: 28%; }
     col.col-score1 { width: 11%; }
@@ -396,10 +396,11 @@ function syncTable() {
     tr.innerHTML =
       '<td>' + label + '</td>' +
       '<td class="center">' + scoreHtml + '</td>' +
-      '<td><input class="vision-input" type="text" placeholder="Describe your ideal…" value="' + esc(saved[key] || '') + '"></td>' +
+      '<td><textarea class="vision-input" placeholder="Describe your ideal…" oninput="autoResize(this)">' + esc(saved[key] || '') + '</textarea></td>' +
       '<td class="future-cell">—</td>';
     tbody.appendChild(tr);
   });
+  tbody.querySelectorAll('textarea.vision-input').forEach(autoResize);
 }
 
 function drawWheel() {
@@ -524,6 +525,11 @@ function wrapLabel(name) {
   return [name.slice(0, split), name.slice(split + 1)];
 }
 
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
 
 function toggleNotes(promptEl) {
   const notes  = promptEl.nextElementSibling;
