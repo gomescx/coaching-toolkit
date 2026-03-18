@@ -105,6 +105,16 @@
   .btn-header-cta { margin-top: 0.4rem; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.38); color: #fff; padding: 0.3rem 0.9rem; border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 0.72rem; font-weight: 500; letter-spacing: 0.25px; text-decoration: none; transition: all 0.18s; display: inline-block; white-space: nowrap; }
   .btn-header-cta:hover { background: rgba(255,255,255,0.22); border-color: rgba(255,255,255,0.65); }
 
+  /* ── Session Bar ── */
+  .session-bar { display: flex; align-items: center; gap: 1.25rem; background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 0.7rem 1.25rem; box-shadow: 0 2px 12px var(--shadow); flex-wrap: wrap; }
+  .session-field { display: flex; align-items: center; gap: 0.5rem; }
+  .session-field label { font-size: 0.7rem; font-weight: 500; color: var(--ink-muted); letter-spacing: 0.4px; text-transform: uppercase; white-space: nowrap; }
+  .session-field input { border: 1px solid var(--border); border-radius: var(--radius); padding: 0.35rem 0.6rem; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; color: var(--ink); background: var(--paper); outline: none; transition: border-color 0.16s; }
+  .session-field input:focus { border-color: var(--blue-light); background: #fff; }
+  .session-field input#clientName { width: 200px; }
+  .session-actions { margin-left: auto; display: flex; gap: 0.5rem; }
+  .btn-load { cursor: pointer; }
+
   /* ── CTA Band ── */
   .cta-band { background: var(--blue); border-radius: var(--radius); overflow: hidden; box-shadow: 0 2px 12px var(--shadow); display: flex; align-items: center; gap: 2rem; padding: 2rem 2.25rem; }
   .cta-band-text h3 { font-family: 'Cormorant Garamond', serif; font-size: 1.55rem; font-weight: 300; color: #fff; letter-spacing: 0.3px; line-height: 1.3; margin-bottom: 0.4rem; }
@@ -133,6 +143,9 @@
     .section-card { box-shadow: none; break-inside: avoid; page-break-inside: avoid; }
     .domain-controls, .btn, .domain-count-note, .q-toggle { display: none !important; }
     .btn-header-cta, .cta-band { display: none !important; }
+    .session-bar { box-shadow: none; border: none; border-bottom: 1px solid var(--border); border-radius: 0; padding: 2mm 0 3mm; }
+    .session-actions { display: none !important; }
+    .session-field input { border: none; background: transparent; font-weight: 500; padding: 0; }
     .question-notes { display: block !important; }
     .question-notes textarea { border: 1px solid #ccc !important; background: #fafafa !important; min-height: 45px; }
     td textarea.vision-input { border: none !important; background: transparent !important; resize: none; }
@@ -167,6 +180,21 @@
 </header>
 
 <main>
+
+  <div class="session-bar">
+    <div class="session-field">
+      <label for="clientName">Client</label>
+      <input type="text" id="clientName" placeholder="Client name">
+    </div>
+    <div class="session-field">
+      <label for="sessionDate">Date</label>
+      <input type="date" id="sessionDate">
+    </div>
+    <div class="session-actions">
+      <button class="btn btn-ghost" onclick="saveSession()">↓ Save JSON</button>
+      <label class="btn btn-ghost btn-load">↑ Load JSON<input type="file" accept=".json" onchange="loadSession(this.files[0]);this.value=''" style="display:none"></label>
+    </div>
+  </div>
 
   <div class="print-pair">
 
@@ -543,6 +571,59 @@ function esc(str) {
   return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+function saveSession() {
+  const visionNotes = {};
+  document.querySelectorAll('#summaryBody tr').forEach(tr => {
+    const ta = tr.querySelector('.vision-input');
+    if (tr.dataset.domainKey && ta) visionNotes[tr.dataset.domainKey] = ta.value;
+  });
+  const reflectionNotes = [...document.querySelectorAll('.question-notes textarea')].map(ta => ta.value);
+  const data = {
+    clientName: document.getElementById('clientName').value,
+    date: document.getElementById('sessionDate').value,
+    domains: domains.map(d => ({ ...d })),
+    visionNotes,
+    reflectionNotes
+  };
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
+  const slug = (data.clientName || 'session').replace(/\s+/g, '-');
+  a.download = `wheel-of-life-${slug}-${data.date || 'undated'}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function loadSession(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data.clientName) document.getElementById('clientName').value = data.clientName;
+      if (data.date)       document.getElementById('sessionDate').value = data.date;
+      if (data.domains)    { domains = data.domains; buildGrid(); }
+      syncTable();
+      if (data.visionNotes) {
+        document.querySelectorAll('#summaryBody tr').forEach(tr => {
+          const ta = tr.querySelector('.vision-input');
+          if (ta && data.visionNotes[tr.dataset.domainKey]) {
+            ta.value = data.visionNotes[tr.dataset.domainKey];
+            autoResize(ta);
+          }
+        });
+      }
+      if (data.reflectionNotes) {
+        document.querySelectorAll('.question-notes textarea').forEach((ta, i) => {
+          if (data.reflectionNotes[i] != null) ta.value = data.reflectionNotes[i];
+        });
+      }
+      drawWheel();
+    } catch { alert('Could not load file — please select a valid Wheel of Life JSON.'); }
+  };
+  reader.readAsText(file);
+}
+
+document.getElementById('sessionDate').value = new Date().toISOString().slice(0, 10);
 buildGrid(); syncTable(); drawWheel();
 </script>
 </body>
