@@ -142,7 +142,10 @@
     col.col-vision { width: 46%; }
     col.col-score2 { width: 15%; }
     thead tr { background: var(--blue) !important; color: #fff !important; }
-    #wheelCanvas { max-width: 110mm; }
+    .print-pair { display: flex; flex-direction: row; gap: 5mm; align-items: flex-start; break-inside: avoid; page-break-inside: avoid; }
+    .print-pair .section-card { flex: 1; min-width: 0; }
+    .print-pair .domain-grid { grid-template-columns: 1fr; }
+    #wheelCanvas { max-width: 85mm; }
     .wheel-wrap { padding: 3mm 0; }
     footer { font-size: 8pt; padding: 3mm 0; }
   }
@@ -164,6 +167,8 @@
 </header>
 
 <main>
+
+  <div class="print-pair">
 
   <div class="section-card">
     <div class="section-header">
@@ -195,6 +200,8 @@
       <div class="wheel-legend" id="wheelLegend"></div>
     </div>
   </div>
+
+  </div><!-- /.print-pair -->
 
   <div class="section-card">
     <div class="section-header">
