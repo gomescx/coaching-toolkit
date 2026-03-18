@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wheel of Life — Coaching Tool</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1a1a; --ink-soft: #4a4a4a; --ink-muted: #888;
+    --paper: #f9f6f0; --paper-warm: #f2ede4;
+    --teal: #2a6b6b; --teal-light: #3d8c8c; --teal-pale: #e4f0f0;
+    --border: #d8d0c4; --shadow: rgba(26,26,26,0.08); --radius: 4px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'DM Sans', sans-serif; font-weight: 300; background: var(--paper); color: var(--ink); line-height: 1.65; min-height: 100vh; }
+
+  header { background: var(--teal); color: #fff; padding: 1.75rem 3rem 1.5rem; display: flex; align-items: flex-end; gap: 1.5rem; }
+  header .logo-mark { width: 48px; height: 48px; border: 2px solid rgba(255,255,255,0.45); border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; font-weight: 300; color: rgba(255,255,255,0.85); letter-spacing: 1px; }
+  header .title-block h1 { font-family: 'Cormorant Garamond', serif; font-size: 1.9rem; font-weight: 300; letter-spacing: 0.5px; line-height: 1.2; }
+  header .title-block p { font-size: 0.78rem; font-weight: 300; color: rgba(255,255,255,0.6); letter-spacing: 0.3px; margin-top: 0.2rem; }
+  header .title-block p a { color: rgba(255,255,255,0.82); text-decoration: underline; text-underline-offset: 2px; }
+  header .title-block p a:hover { color: #fff; }
+
+  main { max-width: 900px; margin: 0 auto; padding: 2.25rem 2rem 4rem; display: flex; flex-direction: column; gap: 2.25rem; }
+
+  .section-card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 2px 12px var(--shadow); overflow: hidden; }
+  .section-header { background: var(--paper-warm); border-bottom: 1px solid var(--border); padding: 0.9rem 1.4rem; display: flex; align-items: center; gap: 0.75rem; }
+  .section-num { width: 26px; height: 26px; background: var(--teal); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 500; flex-shrink: 0; }
+  .section-header h2 { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; font-weight: 400; color: var(--ink); }
+  .section-header p { font-size: 0.75rem; color: var(--ink-muted); margin-left: auto; font-style: italic; }
+  .section-body { padding: 1.4rem; }
+
+  .domain-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(195px, 1fr)); gap: 0.75rem; }
+  .domain-entry { display: flex; flex-direction: column; gap: 0.3rem; }
+  .domain-entry label { font-size: 0.68rem; font-weight: 500; color: var(--ink-muted); letter-spacing: 0.5px; text-transform: uppercase; }
+  .domain-row { display: flex; gap: 0.35rem; align-items: center; }
+  .domain-row input[type="text"] { flex: 1; border: 1px solid var(--border); border-radius: var(--radius); padding: 0.42rem 0.6rem; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; color: var(--ink); background: var(--paper); transition: border-color 0.18s; outline: none; }
+  .domain-row input[type="text"]:focus { border-color: var(--teal-light); background: #fff; }
+  .domain-row input[type="number"] { width: 50px; border: 1px solid var(--border); border-radius: var(--radius); padding: 0.42rem 0.4rem; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; text-align: center; color: var(--ink); background: var(--paper); transition: border-color 0.18s; outline: none; }
+  .domain-row input[type="number"]:focus { border-color: var(--teal-light); background: #fff; }
+  .score-badge { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.62rem; font-weight: 500; flex-shrink: 0; border: 1px solid; }
+
+  .domain-controls { margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
+  .btn { border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 0.78rem; font-weight: 500; padding: 0.45rem 1rem; border-radius: var(--radius); transition: all 0.16s; letter-spacing: 0.2px; white-space: nowrap; }
+  .btn-primary { background: var(--teal); color: #fff; }
+  .btn-primary:hover { background: var(--teal-light); }
+  .btn-secondary { background: transparent; color: var(--teal); border: 1px solid var(--teal); }
+  .btn-secondary:hover { background: var(--teal-pale); }
+  .btn-ghost { background: transparent; color: var(--ink-muted); border: 1px solid var(--border); }
+  .btn-ghost:hover { color: #444; border-color: #999; }
+  .btn-warning { background: transparent; color: #a03030; border: 1px solid #d09090; }
+  .btn-warning:hover { background: #fdf0f0; border-color: #a03030; }
+  .domain-count-note { font-size: 0.72rem; color: var(--ink-muted); margin-left: auto; }
+
+  .wheel-wrap { display: flex; flex-direction: column; align-items: center; gap: 1rem; padding: 1.25rem 1rem 1.75rem; }
+  #wheelCanvas { width: 100%; max-width: 560px; height: auto; display: block; }
+  .wheel-legend { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; justify-content: center; max-width: 560px; }
+  .legend-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.76rem; color: var(--ink-soft); }
+  .legend-dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
+
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; table-layout: fixed; }
+  col.col-domain { width: 26%; }
+  col.col-score1 { width: 12%; }
+  col.col-vision { width: 48%; }
+  col.col-score2 { width: 14%; }
+  thead tr { background: var(--teal); color: #fff; }
+  thead th { padding: 0.65rem 0.75rem; text-align: left; font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 0.72rem; letter-spacing: 0.3px; vertical-align: bottom; line-height: 1.35; }
+  thead th.center { text-align: center; }
+  tbody tr:nth-child(even) { background: var(--paper-warm); }
+  tbody tr:nth-child(odd) { background: #fff; }
+  tbody tr:hover { background: var(--teal-pale); }
+  tbody td { padding: 0.55rem 0.75rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tbody td.center { text-align: center; }
+  .score-display { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; font-weight: 500; font-size: 0.82rem; border: 1.5px solid; }
+  td input[type="text"].vision-input { width: 100%; border: 1px solid transparent; background: transparent; font-family: 'DM Sans', sans-serif; font-size: 0.8rem; font-style: italic; color: var(--ink-soft); padding: 0.22rem 0.35rem; border-radius: var(--radius); outline: none; transition: all 0.16s; }
+  td input[type="text"].vision-input:hover, td input[type="text"].vision-input:focus { border-color: var(--border); background: var(--paper); color: var(--ink); font-style: normal; }
+  td input[type="text"].vision-input::placeholder { color: var(--ink-muted); }
+  .future-cell { text-align: center; color: var(--ink-muted); font-size: 0.75rem; }
+
+  .questions-list { display: flex; flex-direction: column; gap: 0.75rem; }
+  .question-item { border-left: 3px solid var(--teal); border-radius: 0 var(--radius) var(--radius) 0; overflow: hidden; }
+  .question-prompt { display: flex; gap: 0.9rem; align-items: flex-start; padding: 0.75rem 1rem; background: var(--paper-warm); cursor: pointer; user-select: none; transition: background 0.15s; }
+  .question-prompt:hover { background: var(--teal-pale); }
+  .q-num { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; font-weight: 300; color: var(--teal); line-height: 1; flex-shrink: 0; min-width: 1.2rem; padding-top: 0.05rem; }
+  .q-text { font-size: 0.86rem; color: var(--ink); line-height: 1.6; flex: 1; padding-top: 0.1rem; }
+  .q-toggle { font-size: 0.7rem; color: var(--teal); align-self: center; flex-shrink: 0; margin-left: 0.5rem; }
+  .question-notes { display: none; padding: 0.6rem 1rem 0.75rem; background: #fff; border-top: 1px solid var(--border); }
+  .question-notes.open { display: block; }
+  .question-notes textarea { width: 100%; min-height: 80px; border: 1px solid var(--border); border-radius: var(--radius); padding: 0.55rem 0.7rem; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; color: var(--ink); background: var(--paper); resize: vertical; outline: none; line-height: 1.55; transition: border-color 0.16s; }
+  .question-notes textarea:focus { border-color: var(--teal-light); background: #fff; }
+  .question-notes textarea::placeholder { color: var(--ink-muted); font-style: italic; }
+
+  footer { text-align: center; font-size: 0.7rem; color: var(--ink-muted); padding: 1.25rem 2rem 2.25rem; letter-spacing: 0.3px; }
+  footer a { color: var(--teal); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  @media print {
+    @page { size: A4 portrait; margin: 16mm 14mm 16mm 14mm; }
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    body { background: #fff !important; font-size: 10pt; }
+    header { background: var(--teal) !important; padding: 8mm 10mm 7mm; }
+    header .logo-mark { width: 36px; height: 36px; font-size: 1rem; }
+    header .title-block h1 { font-size: 1.5rem; }
+    main { max-width: 100%; padding: 0; gap: 5mm; }
+    .section-card { box-shadow: none; break-inside: avoid; page-break-inside: avoid; }
+    .domain-controls, .btn, .domain-count-note, .q-toggle { display: none !important; }
+    .question-notes { display: block !important; }
+    .question-notes textarea { border: 1px solid #ccc !important; background: #fafafa !important; min-height: 45px; }
+    td input[type="text"].vision-input { border: none !important; background: transparent !important; }
+    table { font-size: 9pt; }
+    col.col-domain { width: 28%; }
+    col.col-score1 { width: 11%; }
+    col.col-vision { width: 46%; }
+    col.col-score2 { width: 15%; }
+    thead tr { background: var(--teal) !important; color: #fff !important; }
+    #wheelCanvas { max-width: 110mm; }
+    .wheel-wrap { padding: 3mm 0; }
+    footer { font-size: 8pt; padding: 3mm 0; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-mark">WL</div>
+  <div class="title-block">
+    <h1>Wheel of Life</h1>
+    <p><a href="https://www.jonathanpassmore.com/books/the-coaches-handbook" target="_blank" rel="noopener">Passmore (2020) p. 442</a></p>
+  </div>
+</header>
+
+<main>
+
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-num">1</div>
+      <h2>Your Life Domains &amp; Scores</h2>
+      <p>6–8 domains &nbsp;·&nbsp; Score each 0–10</p>
+    </div>
+    <div class="section-body">
+      <div class="domain-grid" id="domainGrid"></div>
+      <div class="domain-controls">
+        <button class="btn btn-secondary" onclick="addDomain()">+ Add domain</button>
+        <button class="btn btn-ghost"     onclick="removeDomain()">− Remove last</button>
+        <button class="btn btn-warning"   onclick="clearDomains()">✕ Clear all</button>
+        <button class="btn btn-ghost"     onclick="loadSample()">↺ Load sample</button>
+        <span class="domain-count-note"   id="domainCountNote"></span>
+        <button class="btn btn-primary"   onclick="drawWheel()">Generate Wheel ↓</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-num">2</div>
+      <h2>Your Wheel of Life</h2>
+      <p>Shaded to your current score</p>
+    </div>
+    <div class="wheel-wrap">
+      <canvas id="wheelCanvas" width="560" height="560"></canvas>
+      <div class="wheel-legend" id="wheelLegend"></div>
+    </div>
+  </div>
+
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-num">3</div>
+      <h2>Scoring Summary</h2>
+      <p>Complete the vision column together in session</p>
+    </div>
+    <div class="section-body">
+      <div class="table-wrap">
+        <table id="summaryTable">
+          <colgroup>
+            <col class="col-domain">
+            <col class="col-score1">
+            <col class="col-vision">
+            <col class="col-score2">
+          </colgroup>
+          <thead>
+            <tr>
+              <th>Domain</th>
+              <th class="center">Today's<br>Score<br><span style="font-weight:300;font-size:0.65rem">(0–10)</span></th>
+              <th>What does a 10 look like for you in this area?</th>
+              <th class="center">Future<br>Score<br><span style="font-weight:300;font-size:0.65rem">(end of programme)</span></th>
+            </tr>
+          </thead>
+          <tbody id="summaryBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-num">4</div>
+      <h2>Reflection Questions</h2>
+      <p>Click a question to expand notes</p>
+    </div>
+    <div class="section-body">
+      <div class="questions-list">
+
+        <div class="question-item">
+          <div class="question-prompt" onclick="toggleNotes(this)">
+            <span class="q-num">1</span>
+            <span class="q-text">Which domain currently feels most out of balance for you?</span>
+            <span class="q-toggle">▼ Notes</span>
+          </div>
+          <div class="question-notes">
+            <textarea placeholder="Notes from this question…"></textarea>
+          </div>
+        </div>
+
+        <div class="question-item">
+          <div class="question-prompt" onclick="toggleNotes(this)">
+            <span class="q-num">2</span>
+            <span class="q-text">Which domain, if improved, would have the greatest positive impact on your overall sense of fulfilment?</span>
+            <span class="q-toggle">▼ Notes</span>
+          </div>
+          <div class="question-notes">
+            <textarea placeholder="Notes from this question…"></textarea>
+          </div>
+        </div>
+
+        <div class="question-item">
+          <div class="question-prompt" onclick="toggleNotes(this)">
+            <span class="q-num">3</span>
+            <span class="q-text">Is there a connection between any of the lower-scoring domains and the coaching goals you have already identified?</span>
+            <span class="q-toggle">▼ Notes</span>
+          </div>
+          <div class="question-notes">
+            <textarea placeholder="Notes from this question…"></textarea>
+          </div>
+        </div>
+
+        <div class="question-item">
+          <div class="question-prompt" onclick="toggleNotes(this)">
+            <span class="q-num">4</span>
+            <span class="q-text">What would have to change — in your behaviour, thinking, or environment — for one key domain to move up by 2 points?</span>
+            <span class="q-toggle">▼ Notes</span>
+          </div>
+          <div class="question-notes">
+            <textarea placeholder="Notes from this question…"></textarea>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  Wheel of Life &nbsp;·&nbsp;
+  <a href="https://www.jonathanpassmore.com/books/the-coaches-handbook" target="_blank" rel="noopener">Passmore (2020), <em>The Coaches' Handbook</em>, p. 442</a>
+</footer>
+
+<script>
+const PALETTE = [
+  '#1a6e5c', '#c0392b', '#2471a3', '#d4881e',
+  '#7d3c98', '#1e8a3a', '#b45309', '#155799',
+  '#a16207', '#5d6d7e'
+];
+
+const BLANK_DOMAINS  = Array.from({ length: 6 }, () => ({ name: '', score: '' }));
+const SAMPLE_DOMAINS = [
+  { name: 'Career Direction & Purpose', score: '' },
+  { name: 'Leadership Identity',        score: '' },
+  { name: 'Work Engagement',            score: '' },
+  { name: 'Wellbeing & Energy',         score: '' },
+  { name: 'Relationships & Connection', score: '' },
+  { name: 'Growth & Learning',          score: '' },
+  { name: 'Values Alignment',           score: '' },
+  { name: 'Work–Life Balance',          score: '' },
+];
+
+let domains = SAMPLE_DOMAINS.map(d => ({ ...d }));
+
+function buildGrid() {
+  const grid = document.getElementById('domainGrid');
+  grid.innerHTML = '';
+  domains.forEach((d, i) => {
+    const color = PALETTE[i % PALETTE.length];
+    const cell  = document.createElement('div');
+    cell.className = 'domain-entry';
+    cell.innerHTML = `
+      <label>Domain ${i + 1}</label>
+      <div class="domain-row">
+        <input type="text" placeholder="e.g. Health & Fitness"
+          value="${esc(d.name)}"
+          oninput="domains[${i}].name = this.value; syncTable();"
+          aria-label="Domain ${i + 1} name">
+        <input type="number" min="0" max="10" step="1" placeholder="—"
+          value="${d.score}"
+          oninput="
+            let v = parseInt(this.value);
+            if (isNaN(v)) v = '';
+            else if (v < 0) v = 0;
+            else if (v > 10) v = 10;
+            this.value = v; domains[${i}].score = v; syncTable();
+          "
+          aria-label="Score for domain ${i + 1}">
+        <div class="score-badge" style="background:${color}18;border-color:${color};color:${color}">${i + 1}</div>
+      </div>`;
+    grid.appendChild(cell);
+  });
+  updateCountNote();
+}
+
+function updateCountNote() {
+  const n   = domains.length;
+  const msg = n < 6 ? 'Add ' + (6 - n) + ' more' : n > 8 ? 'Max 8 recommended' : '✓ Good to go';
+  document.getElementById('domainCountNote').textContent = n + ' domain' + (n !== 1 ? 's' : '') + ' · ' + msg;
+}
+
+function addDomain()    { if (domains.length >= 10) return; domains.push({ name: '', score: '' }); buildGrid(); syncTable(); }
+function removeDomain() { if (domains.length <= 2) return; domains.pop(); buildGrid(); syncTable(); }
+function clearDomains() {
+  if (!confirm('Clear all domains and scores?')) return;
+  domains = BLANK_DOMAINS.map(d => ({ ...d })); buildGrid(); syncTable(); drawWheel();
+}
+function loadSample()   { domains = SAMPLE_DOMAINS.map(d => ({ ...d })); buildGrid(); syncTable(); drawWheel(); }
+
+function syncTable() {
+  const tbody = document.getElementById('summaryBody');
+  const saved = {};
+  tbody.querySelectorAll('tr').forEach((tr, i) => {
+    const inp = tr.querySelector('.vision-input');
+    if (inp) saved[i] = inp.value;
+  });
+  tbody.innerHTML = '';
+  domains.forEach((d, i) => {
+    const hasScore  = d.score !== '' && d.score !== undefined && d.score !== null;
+    const col       = PALETTE[i % PALETTE.length];
+    const scoreHtml = hasScore
+      ? '<div class="score-display" style="border-color:' + col + ';color:' + col + ';background:' + col + '14">' + d.score + '</div>'
+      : '<span style="color:var(--ink-muted);font-size:0.78rem">—</span>';
+    const label = d.name ? esc(d.name) : '<em style="color:var(--ink-muted)">Domain ' + (i + 1) + '</em>';
+    const tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td>' + label + '</td>' +
+      '<td class="center">' + scoreHtml + '</td>' +
+      '<td><input class="vision-input" type="text" placeholder="Describe your ideal…" value="' + esc(saved[i] || '') + '"></td>' +
+      '<td class="future-cell">—</td>';
+    tbody.appendChild(tr);
+  });
+}
+
+function drawWheel() {
+  const canvas = document.getElementById('wheelCanvas');
+  const ctx    = canvas.getContext('2d');
+  const SIZE   = 560;
+  const MARGIN = 115;
+  canvas.width = SIZE; canvas.height = SIZE;
+  ctx.clearRect(0, 0, SIZE, SIZE);
+
+  const cx = SIZE / 2, cy = SIZE / 2;
+  const R  = SIZE / 2 - MARGIN;
+  const n  = domains.length;
+  if (n === 0) return;
+
+  const sliceAngle  = 2 * Math.PI / n;
+  const startOffset = -Math.PI / 2;
+
+  /* Concentric rings */
+  for (let ring = 1; ring <= 10; ring++) {
+    const r = ring / 10 * R;
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, 2 * Math.PI);
+    ctx.strokeStyle = ring % 2 === 0 ? 'rgba(0,0,0,0.07)' : 'rgba(0,0,0,0.04)';
+    ctx.lineWidth = 0.8; ctx.stroke();
+    if (ring % 2 === 0) {
+      ctx.font = '400 8px DM Sans, sans-serif';
+      ctx.fillStyle = '#bbb';
+      ctx.fillText(ring, cx + r + 3, cy + 4);
+    }
+  }
+
+  /* Spokes */
+  for (let i = 0; i < n; i++) {
+    const a = startOffset + i * sliceAngle;
+    ctx.beginPath(); ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + R * Math.cos(a), cy + R * Math.sin(a));
+    ctx.strokeStyle = 'rgba(180,170,158,0.65)'; ctx.lineWidth = 0.8; ctx.stroke();
+  }
+
+  /* Filled segments */
+  domains.forEach((d, i) => {
+    const score = parseFloat(d.score);
+    if (isNaN(score) || score <= 0) return;
+    const fillR = Math.min(score, 10) / 10 * R;
+    const a0 = startOffset + i * sliceAngle;
+    const a1 = a0 + sliceAngle;
+    const color = PALETTE[i % PALETTE.length];
+    ctx.save();
+    ctx.beginPath(); ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, fillR, a0, a1); ctx.closePath();
+    ctx.fillStyle = color + 'b0'; ctx.fill();
+    ctx.strokeStyle = color; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.restore();
+  });
+
+  /* Outer border */
+  ctx.beginPath(); ctx.arc(cx, cy, R, 0, 2 * Math.PI);
+  ctx.strokeStyle = 'rgba(42,107,107,0.3)'; ctx.lineWidth = 1.5; ctx.stroke();
+
+  /* Horizontal labels */
+  ctx.save();
+  ctx.font = '500 10px DM Sans, sans-serif';
+
+  domains.forEach((d, i) => {
+    const midAngle = startOffset + i * sliceAngle + sliceAngle / 2;
+    const cosA = Math.cos(midAngle);
+    const sinA = Math.sin(midAngle);
+    const color = PALETTE[i % PALETTE.length];
+    const name  = d.name || ('Domain ' + (i + 1));
+
+    /* Tick from rim outward */
+    const TICK = 8, GAP = 6;
+    const tx0 = cx + R * cosA, ty0 = cy + R * sinA;
+    const tx1 = cx + (R + TICK) * cosA, ty1 = cy + (R + TICK) * sinA;
+    ctx.beginPath(); ctx.moveTo(tx0, ty0); ctx.lineTo(tx1, ty1);
+    ctx.strokeStyle = color + '70'; ctx.lineWidth = 1; ctx.stroke();
+
+    /* Label anchor */
+    const lx = cx + (R + TICK + GAP) * cosA;
+    const ly = cy + (R + TICK + GAP) * sinA;
+
+    /* Alignment: left on right half, right on left half, center top/bottom */
+    const THRESH = 0.2;
+    let align;
+    if      (cosA >  THRESH) align = 'left';
+    else if (cosA < -THRESH) align = 'right';
+    else                     align = 'center';
+
+    const lines = wrapLabel(name);
+    const lineH = 13;
+    const totalH = lines.length * lineH;
+
+    ctx.fillStyle = color;
+    ctx.textAlign = align;
+    ctx.textBaseline = 'middle';
+    lines.forEach((line, li) => {
+      ctx.fillText(line, lx, ly - totalH / 2 + (li + 0.5) * lineH);
+    });
+  });
+
+  ctx.restore();
+
+  /* Centre dot */
+  ctx.beginPath(); ctx.arc(cx, cy, 4.5, 0, 2 * Math.PI);
+  ctx.fillStyle = '#2a6b6b'; ctx.fill();
+
+  buildLegend();
+  document.getElementById('wheelCanvas').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function wrapLabel(name) {
+  for (const sep of [' & ', ' – ', '–']) {
+    if (name.includes(sep)) {
+      const parts = name.split(sep);
+      return [parts[0], parts.slice(1).join(sep)].slice(0, 2);
+    }
+  }
+  if (name.length <= 14) return [name];
+  const mid   = Math.floor(name.length / 2);
+  let   split = name.lastIndexOf(' ', mid);
+  if (split < 2) split = name.indexOf(' ', mid);
+  if (split < 0) return [name];
+  return [name.slice(0, split), name.slice(split + 1)];
+}
+
+function buildLegend() {
+  const leg = document.getElementById('wheelLegend');
+  leg.innerHTML = '';
+  domains.forEach((d, i) => {
+    if (!d.name && d.score === '') return;
+    const score = (d.score !== '' && d.score !== undefined) ? d.score : '?';
+    const item  = document.createElement('div');
+    item.className = 'legend-item';
+    item.innerHTML =
+      '<span class="legend-dot" style="background:' + PALETTE[i % PALETTE.length] + '"></span>' +
+      '<span>' + esc(d.name || ('Domain ' + (i + 1))) + ' <strong>(' + score + ')</strong></span>';
+    leg.appendChild(item);
+  });
+}
+
+function toggleNotes(promptEl) {
+  const notes  = promptEl.nextElementSibling;
+  const toggle = promptEl.querySelector('.q-toggle');
+  const isOpen = notes.classList.toggle('open');
+  toggle.textContent = isOpen ? '▲ Notes' : '▼ Notes';
+  if (isOpen) notes.querySelector('textarea').focus();
+}
+
+function esc(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+buildGrid(); syncTable(); drawWheel();
+</script>
+</body>
+</html>
